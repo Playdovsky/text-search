@@ -2,7 +2,9 @@ import string
 import random
 import matplotlib.pyplot as plt
 
-# Calls for chart functions
+comparisons = 0
+
+# User menu. Calls for selected chart functions
 def menu():
     try:
         print("What do you want to do?\n1. Plot a text length against comparisons chart\n2. Plot a pattern length against comparisons chart\n3. Plot an alphabet length against comparisons chart\n4. Plot all charts\n5. Exit\n")
@@ -32,10 +34,9 @@ def menu():
     except ValueError:
         print("\nLength should be a numeric value! Try again\n")
 
-
+# Gets lengths of pattern |W| and text |T| from user input
 def get_lengths():
     try:
-        # Get lengths of pattern |W| and text |T|
         print("How long should be the pattern |W|?")
         pattern_len = int(input())
         print("How long should be the text |T|?")
@@ -48,13 +49,12 @@ def get_lengths():
         print("\nLength should be a numeric value! Try again\n")
         menu()
 
+# Gets alphabet |A| length from user input 
 def get_alphabet():
     try:
-        # Get desired alphabet |A| length
         print("How big should be the alphabet |A|?")
         alphabet_len = int(input())
         
-        # Alphabet length can't be longer than alphabet itself (26 characters)
         if alphabet_len > len(list(string.ascii_lowercase)): raise Exception("\nWhole alphabet is smaller than the provided length! Try again\n")
         
         return alphabet_len
@@ -64,6 +64,7 @@ def get_alphabet():
     
 # Calculates information for X = |T|, Y = Comparisons
 def chart_text_comparisons(alphabet, pattern_len, text_len):
+        global comparisons
         i = 0
         pattern = ""
         
@@ -73,21 +74,26 @@ def chart_text_comparisons(alphabet, pattern_len, text_len):
 
         i = 0
         text = ""
-        text_lengths = []
-        comparisons_list = []
+        text_lengths_naive = []
+        comparisons_naive = []
+        text_lengths_sunday = []
+        comparisons_sunday = []
         
+        # Loop execution of algorithms for growing text |T|
         while i < text_len:
             text += random.choice(alphabet)
-            # With each iteration, naive_search function tries to find pattern |W| in the slowly growing text |T|
-            # Text |T| grows with each iteration
-            found_patterns, comparisons = naive_search(pattern, text)
-            text_lengths.append(len(text))
-            comparisons_list.append(comparisons)
-            
+            # Naive search
+            found_patterns = naive_search(pattern, text)
+            text_lengths_naive.append(len(text))
+            comparisons_naive.append(comparisons)
+            # Sunday search
+            comparisons = 0
+            found_patterns = sunday_search(pattern, text)
+            text_lengths_sunday.append(len(text))
+            comparisons_sunday.append(comparisons)
             i += 1
         
-        #print("\nNaive search found: " + str(found_patterns) + " matching patterns in the text with " + str(comparisons) + " comparisons\n")
-        draw_chart(text_lengths, comparisons_list, chart_title = "Text length against comparisons", x_title = "Text length")
+        draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, chart_title = "Text length against comparisons", x_title = "Text length")
 
 # Calculates information for X = |W|, Y = Comparisons
 def chart_pattern_comparisons(alphabet, pattern_len, text_len):
@@ -143,41 +149,62 @@ def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
         comparisons_list.append(comparisons)
     
     draw_chart(alphabet_lengths, comparisons_list, chart_title = "Alphabet length against comparisons", x_title = "Alphabet length")
-    
-# Starts the naive search algorithm
-# Returns number of found patterns |W| in provided text |T|
-# Returns number of comparisons made during execution of an algorithm
-def naive_search(pattern, text):
-    comparisons = 0
-    found_patterns = 0
-    
-    # In the range of text |T|, search for the pattern |W| comparing letter after letter
-    # len(text) - len(pattern) prevents "out of index" exception, + 1 skips index 0
-    for n in range(len(text) - len(pattern) + 1):
-        match = True
-        
-        # In the length of pattern |W| compare letters. Add 1 for each comparison iteration
-        for m in range(len(pattern)):
-            comparisons += 1
-            
-            # Comparison between value at the text |T| index and value at the patterns |W| respective position
-            if text[n + m] != pattern[m]:
-                match = False
-                break
-        
-        # If match was True after whole pattern |W| check, increase number of found patterns |W| in the text |T|
-        if match:
-            found_patterns += 1
-    
-    return found_patterns, comparisons
 
+# Checks if letter from text |T| matches corresponding pattern |W| letter
+def matches_at(pattern, text, p):
+    global comparisons
+    i = 0
+    while i < len(pattern):
+        comparisons += 1
+        if pattern[i] != text[p+i]:
+            return False
+        i += 1
+    
+    return True
+
+# Naive search algorithm. Compares each letter from text |T| to pattern |W|
+def naive_search(pattern, text):
+    global comparisons
+    found_patterns = 0
+    p = 0
+    
+    while p <= len(text) - len(pattern):
+        if matches_at(pattern, text, p):
+            found_patterns += 1
+        comparisons += 1
+        p += 1
+
+def sunday_search(pattern, text):
+    global comparisons
+    found_patterns = 0
+    p = 0
+    i = 0
+    
+    lastp = {}
+    while i <= len(pattern) - 1:
+        lastp.update({pattern[i]:i})
+        i += 1
+    
+    
+    while p <= len(text) - len(pattern):
+        if matches_at(pattern, text, p):
+            found_patterns += 1
+        
+        p += len(pattern)
+        
+        if p < len(text):
+            p -= lastp.get(text[p], -1)
+
+        
 # Draws chart based on provided information during calls
-def draw_chart(x, y, chart_title, x_title):
-    plt.plot(x, y)
+def draw_chart(x1, y1, x2, y2, chart_title, x_title):
+    plt.plot(x1, y1, label="naive")
+    plt.plot(x2, y2, label="sunday")
     plt.title(chart_title)
     plt.xlabel(x_title)
     plt.ylabel("Comparisons")
     plt.grid(True)
+    plt.legend()
     plt.show()
 
 # Starts the program
