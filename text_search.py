@@ -86,17 +86,19 @@ def chart_text_comparisons(alphabet, pattern_len, text_len):
             found_patterns = naive_search(pattern, text)
             text_lengths_naive.append(len(text))
             comparisons_naive.append(comparisons)
-            # Sunday search
             comparisons = 0
+            # Sunday search
             found_patterns = sunday_search(pattern, text)
             text_lengths_sunday.append(len(text))
             comparisons_sunday.append(comparisons)
+            comparisons = 0
             i += 1
         
         draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, chart_title = "Text length against comparisons", x_title = "Text length")
 
 # Calculates information for X = |W|, Y = Comparisons
 def chart_pattern_comparisons(alphabet, pattern_len, text_len):
+    global comparisons
     i = 0
     text = ""
     
@@ -106,26 +108,39 @@ def chart_pattern_comparisons(alphabet, pattern_len, text_len):
     
     i = 0
     pattern = ""
-    pattern_lengths = []
-    comparisons_list = []
+    pattern_lengths_naive = []
+    comparisons_naive = []
+    pattern_lengths_sunday = []
+    comparisons_sunday = []
     
+    # Loop execution of algorithms for growing pattern |W|
     while i < pattern_len:
         pattern += random.choice(alphabet)
-        # With each iteration, naive_search function tries to find pattern |W| in text |T| while also slowly increasing the length of pattern
-        # Pattern |W| grows with each iteration
-        found_patterns, comparisons = naive_search(pattern, text)
-        pattern_lengths.append(len(pattern))
-        comparisons_list.append(comparisons)
+        # Naive search
+        found_patterns = naive_search(pattern, text)
+        pattern_lengths_naive.append(len(pattern))
+        comparisons_naive.append(comparisons)
+        comparisons = 0
+        # Sunday search
+        found_patterns = sunday_search(pattern, text)
+        pattern_lengths_sunday.append(len(pattern))
+        comparisons_sunday.append(comparisons)
+        comparisons = 0
         i += 1
 
-    draw_chart(pattern_lengths, comparisons_list, chart_title = "Pattern length against comparisons", x_title = "Pattern length")
+    draw_chart(pattern_lengths_naive, comparisons_naive, pattern_lengths_sunday, comparisons_sunday, chart_title = "Pattern length against comparisons", x_title = "Pattern length")
     
 # Calculates information for X = |A|, Y = Comparisons
 def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
+    global comparisons
     i = 1
     alphabet = ""
     alphabet_lengths = []
-    comparisons_list = []
+    comparisons_naive = []
+    comparisons_sunday = []
+    
+    # Loop execution of algorithms for growing alphabet |A|
+    # Each new loop / alphabet letter requires new text |T| and pattern |W| to be made 
     while i <= alphabet_len:
         alphabet = string.ascii_lowercase[:i]
         i += 1
@@ -141,14 +156,18 @@ def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
         while m < pattern_len:
             pattern += random.choice(alphabet)
             m += 1
-        
-        # With each iteration, naive_search function tries to find pattern |W| in text |T|
-        # Alphabet |A| grows with each iteration which requires new text |T| and pattern |W| generation with each cycle
-        found_patterns, comparisons = naive_search(pattern, text)
+
+        # Naive search
+        found_patterns = naive_search(pattern, text)
         alphabet_lengths.append(len(alphabet))
-        comparisons_list.append(comparisons)
+        comparisons_naive.append(comparisons)
+        comparisons = 0
+        # Sunday search
+        found_patterns = sunday_search(pattern, text)
+        comparisons_sunday.append(comparisons)
+        comparisons = 0
     
-    draw_chart(alphabet_lengths, comparisons_list, chart_title = "Alphabet length against comparisons", x_title = "Alphabet length")
+    draw_chart(alphabet_lengths, comparisons_naive, alphabet_lengths, comparisons_sunday, chart_title = "Alphabet length against comparisons", x_title = "Alphabet length")
 
 # Checks if letter from text |T| matches corresponding pattern |W| letter
 def matches_at(pattern, text, p):
@@ -174,6 +193,7 @@ def naive_search(pattern, text):
         comparisons += 1
         p += 1
 
+# Sunday search algorithm. Skips chunks of text |T| by checking neighbouring letter
 def sunday_search(pattern, text):
     global comparisons
     found_patterns = 0
