@@ -78,6 +78,8 @@ def chart_text_comparisons(alphabet, pattern_len, text_len):
         comparisons_naive = []
         text_lengths_sunday = []
         comparisons_sunday = []
+        text_lengths_karp_rabin = []
+        comparisons_karp_rabin = []
         
         # Loop execution of algorithms for growing text |T|
         while i < text_len:
@@ -92,9 +94,14 @@ def chart_text_comparisons(alphabet, pattern_len, text_len):
             text_lengths_sunday.append(len(text))
             comparisons_sunday.append(comparisons)
             comparisons = 0
+            # Karp-Rabin search
+            found_patterns = karp_rabin_search(pattern, text, alphabet)
+            text_lengths_karp_rabin.append(len(text))
+            comparisons_karp_rabin.append(comparisons)
+            comparisons = 0
             i += 1
         
-        draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, chart_title = "Text length against comparisons", x_title = "Text length")
+        draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, text_lengths_karp_rabin, comparisons_karp_rabin, chart_title = "Text length against comparisons", x_title = "Text length")
 
 # Calculates information for X = |W|, Y = Comparisons
 def chart_pattern_comparisons(alphabet, pattern_len, text_len):
@@ -199,27 +206,66 @@ def sunday_search(pattern, text):
     found_patterns = 0
     p = 0
     i = 0
+    pattern_len = len(pattern)
+    text_len = len(text)
     
     lastp = {}
-    while i <= len(pattern) - 1:
+    while i <= pattern_len - 1:
         lastp.update({pattern[i]:i})
         i += 1
     
     
-    while p <= len(text) - len(pattern):
+    while p <= text_len - pattern_len:
         if matches_at(pattern, text, p):
             found_patterns += 1
         
-        p += len(pattern)
+        p += pattern_len
         
-        if p < len(text):
+        if p < text_len:
             p -= lastp.get(text[p], -1)
 
+# Hashes given string to a number in accordance to alphabet order
+def hash_string(pre_hash, alphabet):
+    i = len(pre_hash) - 1
+    post_hash = 0
+    
+    while i >= 0:
+        post_hash += (alphabet.index(pre_hash[i]) + 1) * (len(alphabet)**i)
+        i -= 1
+    
+    return post_hash
+
+# Karp-Rabin search calculates hashes, then compares them with text |T| window hashes
+def karp_rabin_search(pattern, text, alphabet):
+    global comparisons
+    found_patterns = 0
+    p = 0
+    pattern_len = len(pattern)
+    text_len = len(text)
+    alphabet_len =  len(alphabet)
+    
+    pattern_hash = hash_string(pattern, alphabet)
+    text_hash = hash_string(text[0:pattern_len], alphabet)
+    highest_power = alphabet_len ** (pattern_len - 1)
+    
+    while p <= text_len  - pattern_len:
+        if (pattern_hash == text_hash):
+            if (matches_at(pattern, text, p)):
+                found_patterns += 1
+        
+        if p < text_len - pattern_len:
+            left_char_value = (alphabet.index(text[p]) + 1) * highest_power
+            right_char_value = (alphabet.index(text[p + pattern_len]) + 1)
+            text_hash = (text_hash - left_char_value) * alphabet_len + right_char_value
+        
+        p += 1
+        comparisons += 1
         
 # Draws chart based on provided information during calls
-def draw_chart(x1, y1, x2, y2, chart_title, x_title):
+def draw_chart(x1, y1, x2, y2, x3, y3, chart_title, x_title):
     plt.plot(x1, y1, label="naive")
     plt.plot(x2, y2, label="sunday")
+    plt.plot(x3, y3, 'y', label="karp-rabin")
     plt.title(chart_title)
     plt.xlabel(x_title)
     plt.ylabel("Comparisons")
