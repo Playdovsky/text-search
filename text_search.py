@@ -119,6 +119,8 @@ def chart_pattern_comparisons(alphabet, pattern_len, text_len):
     comparisons_naive = []
     pattern_lengths_sunday = []
     comparisons_sunday = []
+    pattern_lengths_karp_rabin = []
+    comparisons_karp_rabin = []
     
     # Loop execution of algorithms for growing pattern |W|
     while i < pattern_len:
@@ -133,9 +135,14 @@ def chart_pattern_comparisons(alphabet, pattern_len, text_len):
         pattern_lengths_sunday.append(len(pattern))
         comparisons_sunday.append(comparisons)
         comparisons = 0
+        # Karp-Rabin search
+        found_patterns = karp_rabin_search(pattern, text, alphabet)
+        pattern_lengths_karp_rabin.append(len(pattern))
+        comparisons_karp_rabin.append(comparisons)
+        comparisons = 0
         i += 1
 
-    draw_chart(pattern_lengths_naive, comparisons_naive, pattern_lengths_sunday, comparisons_sunday, chart_title = "Pattern length against comparisons", x_title = "Pattern length")
+    draw_chart(pattern_lengths_naive, comparisons_naive, pattern_lengths_sunday, comparisons_sunday, pattern_lengths_karp_rabin, comparisons_karp_rabin, chart_title = "Pattern length against comparisons", x_title = "Pattern length")
     
 # Calculates information for X = |A|, Y = Comparisons
 def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
@@ -145,6 +152,7 @@ def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
     alphabet_lengths = []
     comparisons_naive = []
     comparisons_sunday = []
+    comparisons_karp_rabin = []
     
     # Loop execution of algorithms for growing alphabet |A|
     # Each new loop / alphabet letter requires new text |T| and pattern |W| to be made 
@@ -173,8 +181,12 @@ def chart_alphabet_comparisons(alphabet_len, pattern_len, text_len):
         found_patterns = sunday_search(pattern, text)
         comparisons_sunday.append(comparisons)
         comparisons = 0
+        # Karp-Rabin search
+        found_patterns = karp_rabin_search(pattern, text, alphabet)
+        comparisons_karp_rabin.append(comparisons)
+        comparisons = 0
     
-    draw_chart(alphabet_lengths, comparisons_naive, alphabet_lengths, comparisons_sunday, chart_title = "Alphabet length against comparisons", x_title = "Alphabet length")
+    draw_chart(alphabet_lengths, comparisons_naive, alphabet_lengths, comparisons_sunday, alphabet_lengths, comparisons_karp_rabin, chart_title = "Alphabet length against comparisons", x_title = "Alphabet length")
 
 # Checks if letter from text |T| matches corresponding pattern |W| letter
 def matches_at(pattern, text, p):
