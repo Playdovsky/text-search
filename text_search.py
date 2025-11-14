@@ -9,6 +9,7 @@ def menu():
     try:
         print("What do you want to do?\n1. Plot a text length against comparisons chart\n2. Plot a pattern length against comparisons chart\n3. Plot an alphabet length against comparisons chart\n4. Plot all charts\n5. Exit\n")
         option = int(input())
+        if option == 5: exit()
         pattern_len, text_len = get_lengths()
         alphabet_len = get_alphabet()
 
@@ -26,82 +27,77 @@ def menu():
                 chart_text_comparisons(alphabet, pattern_len, text_len)
                 chart_pattern_comparisons(alphabet, pattern_len, text_len)
                 chart_alphabet_comparisons(alphabet_len, pattern_len, text_len)
-            case 5:
-                exit()
             case _:
                 print("Something went wrong, please try again")
                 
     except ValueError:
         print("\nLength should be a numeric value! Try again\n")
+        menu()
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        menu()
 
 # Gets lengths of pattern |W| and text |T| from user input
 def get_lengths():
-    try:
-        print("How long should be the pattern |W|?")
-        pattern_len = int(input())
-        print("How long should be the text |T|?")
-        text_len = int(input())
+    print("How long should be the pattern |W|?")
+    pattern_len = int(input())
+    print("How long should be the text |T|?")
+    text_len = int(input())
     
-        if pattern_len > text_len: raise Exception("\nPattern shouldn't be longer than text itself! Try again\n")
+    if pattern_len > text_len: raise Exception("\nPattern shouldn't be longer than text itself! Try again\n")
         
-        return pattern_len, text_len
-    except ValueError:
-        print("\nLength should be a numeric value! Try again\n")
-        menu()
+    return pattern_len, text_len
+
 
 # Gets alphabet |A| length from user input 
 def get_alphabet():
-    try:
-        print("How big should be the alphabet |A|?")
-        alphabet_len = int(input())
-        
-        if alphabet_len > len(list(string.ascii_lowercase)): raise Exception("\nWhole alphabet is smaller than the provided length! Try again\n")
-        
-        return alphabet_len
-    except ValueError:
-        print("\nLength should be a numeric value! Try again\n")
-        menu()
+    print("How big should be the alphabet |A|?")
+    alphabet_len = int(input())
+    
+    if alphabet_len > len(list(string.ascii_lowercase)): raise Exception("\nWhole alphabet is smaller than the provided length! Try again\n")
+    
+    return alphabet_len
     
 # Calculates information for X = |T|, Y = Comparisons
 def chart_text_comparisons(alphabet, pattern_len, text_len):
-        global comparisons
-        i = 0
-        pattern = ""
-        
-        while i < pattern_len:
-            pattern += random.choice(alphabet)
-            i += 1
+    global comparisons
+    i = 0
+    pattern = ""
+    
+    while i < pattern_len:
+        pattern += random.choice(alphabet)
+        i += 1
 
-        i = 0
-        text = ""
-        text_lengths_naive = []
-        comparisons_naive = []
-        text_lengths_sunday = []
-        comparisons_sunday = []
-        text_lengths_karp_rabin = []
-        comparisons_karp_rabin = []
-        
-        # Loop execution of algorithms for growing text |T|
-        while i < text_len:
-            text += random.choice(alphabet)
-            # Naive search
-            found_patterns = naive_search(pattern, text)
-            text_lengths_naive.append(len(text))
-            comparisons_naive.append(comparisons)
-            comparisons = 0
-            # Sunday search
-            found_patterns = sunday_search(pattern, text)
-            text_lengths_sunday.append(len(text))
-            comparisons_sunday.append(comparisons)
-            comparisons = 0
-            # Karp-Rabin search
-            found_patterns = karp_rabin_search(pattern, text, alphabet)
-            text_lengths_karp_rabin.append(len(text))
-            comparisons_karp_rabin.append(comparisons)
-            comparisons = 0
-            i += 1
-        
-        draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, text_lengths_karp_rabin, comparisons_karp_rabin, chart_title = "Text length against comparisons", x_title = "Text length")
+    i = 0
+    text = ""
+    text_lengths_naive = []
+    comparisons_naive = []
+    text_lengths_sunday = []
+    comparisons_sunday = []
+    text_lengths_karp_rabin = []
+    comparisons_karp_rabin = []
+    
+    # Loop execution of algorithms for growing text |T|
+    while i < text_len:
+        text += random.choice(alphabet)
+        # Naive search
+        found_patterns = naive_search(pattern, text)
+        text_lengths_naive.append(len(text))
+        comparisons_naive.append(comparisons)
+        comparisons = 0
+        # Sunday search
+        found_patterns = sunday_search(pattern, text)
+        text_lengths_sunday.append(len(text))
+        comparisons_sunday.append(comparisons)
+        comparisons = 0
+        # Karp-Rabin search
+        found_patterns = karp_rabin_search(pattern, text, alphabet)
+        text_lengths_karp_rabin.append(len(text))
+        comparisons_karp_rabin.append(comparisons)
+        comparisons = 0
+        i += 1
+    
+    draw_chart(text_lengths_naive, comparisons_naive, text_lengths_sunday, comparisons_sunday, text_lengths_karp_rabin, comparisons_karp_rabin, chart_title = "Text length against comparisons", x_title = "Text length")
 
 # Calculates information for X = |W|, Y = Comparisons
 def chart_pattern_comparisons(alphabet, pattern_len, text_len):
